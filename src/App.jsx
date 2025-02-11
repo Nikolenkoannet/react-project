@@ -1,15 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
+import ReactDOM from "react-dom/client";
 
-const [state, setState] = React.useState(0);
-
-export default function EmojiVoting() {
+function App() {
     const emojis = ["😀", "😂", "😍", "😎", "😢"];
     const [votes, setVotes] = useState([0, 0, 0, 0, 0]);
     const [winner, setWinner] = useState("");
 
     function handleVote(index) {
         let newVotes = [...votes];
-        newVotes[index] = newVotes[index] + 1;
+        newVotes[index] += 1;
         setVotes(newVotes);
     }
 
@@ -21,6 +20,7 @@ export default function EmojiVoting() {
 
     return (
         <div>
+            <h1>Голосування за смайлик</h1>
             {emojis.map((emoji, index) => (
                 <div key={index}>
                     <button onClick={() => handleVote(index)}>{emoji}</button>
@@ -32,3 +32,6 @@ export default function EmojiVoting() {
         </div>
     );
 }
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
