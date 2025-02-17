@@ -1,37 +1,102 @@
-import React, { useState } from "react";
-import ReactDOM from "react-dom/client";
 
-function App() {
-    const emojis = ["😀", "😂", "😍", "😎", "😢"];
-    const [votes, setVotes] = useState([0, 0, 0, 0, 0]);
-    const [winner, setWinner] = useState("");
+import React, { useState, useEffect } from 'react';
 
-    function handleVote(index) {
-        let newVotes = [...votes];
-        newVotes[index] += 1;
-        setVotes(newVotes);
-    }
+function ContactsApp() {
+    const [contacts, setContacts] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [newContact, setNewContact] = useState({ name: '', surname: '', phone: '' });
 
-    function showWinner() {
-        let maxVotes = Math.max(...votes);
-        let winnerIndex = votes.indexOf(maxVotes);
-        setWinner(emojis[winnerIndex]);
-    }
+    useEffect(() => {
+        fetch('https://jsonplaceholder.typicode.com/users')
+            .then((response) => response.json())
+            .then((data) => {
+                const initialContacts = data.map((user) => ({
+                    name: user.name,
+                    surname: user.username,
+                    phone: user.phone
+                }));
+                setContacts(initialContacts);
+            });
+    }, []);
+
+    const deleteContact = (index) => {
+        const updatedContacts = contacts.filter((_, i) => i !== index);
+        setContacts(updatedContacts);
+    };
+
+    const addContact = () => {
+        if (newContact.name && newContact.surname && newContact.phone) {
+            setContacts([...contacts, newContact]);
+            setNewContact({ name: '', surname: '', phone: '' });
+            setShowForm(false);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewContact({ ...newContact, [name]: value });
+    };
 
     return (
         <div>
-            <h1>Голосування за смайлик</h1>
-            {emojis.map((emoji, index) => (
-                <div key={index}>
-                    <button onClick={() => handleVote(index)}>{emoji}</button>
-                    <span> Голоси: {votes[index]}</span>
+            <h2>Список контактів</h2>
+            <table border="1" cellPadding="5" cellSpacing="0">
+                <thead>
+                <tr>
+                    <th>Ім'я</th>
+                    <th>Прізвище</th>
+                    <th>Телефон</th>
+                    <th>Дія</th>
+                </tr>
+                </thead>
+                <tbody>
+                {contacts.map((contact, index) => (
+                    <tr key={index}>
+                        <td>{contact.name}</td>
+                        <td>{contact.surname}</td>
+                        <td>{contact.phone}</td>
+                        <td>
+                            <button onClick={() => deleteContact(index)}>Видалити</button>
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+
+            <button onClick={() => setShowForm(true)}>Додати контакт</button>
+
+            {showForm && (
+                <div>
+                    <h3>Новий контакт</h3>
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Ім'я"
+                        value={newContact.name}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        type="text"
+                        name="surname"
+                        placeholder="Прізвище"
+                        value={newContact.surname}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        type="text"
+                        name="phone"
+                        placeholder="Телефон"
+                        value={newContact.phone}
+                        onChange={handleInputChange}
+                    />
+                    <br />
+                    <button onClick={addContact}>Зберегти</button>
+                    <button onClick={() => setShowForm(false)}>Скасувати</button>
                 </div>
-            ))}
-            <button onClick={showWinner}>Show Results</button>
-            {winner && <h3>🏆 Переможець: {winner}</h3>}
+            )}
         </div>
     );
 }
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+export default ContactsApp;
+
