@@ -1,102 +1,87 @@
-
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';
 
-function ContactsApp() {
+function App() {
     const [contacts, setContacts] = useState([]);
     const [showForm, setShowForm] = useState(false);
-    const [newContact, setNewContact] = useState({ name: '', surname: '', phone: '' });
+    const [newContact, setNewContact] = useState({ name: '', phone: '', email: '' });
 
     useEffect(() => {
         fetch('https://jsonplaceholder.typicode.com/users')
-            .then((response) => response.json())
-            .then((data) => {
-                const initialContacts = data.map((user) => ({
-                    name: user.name,
-                    surname: user.username,
-                    phone: user.phone
-                }));
-                setContacts(initialContacts);
-            });
+            .then((res) => res.json())
+            .then((data) => setContacts(data.map((u) => ({ name: u.name, phone: u.phone, email: u.email }))));
     }, []);
 
-    const deleteContact = (index) => {
-        const updatedContacts = contacts.filter((_, i) => i !== index);
-        setContacts(updatedContacts);
-    };
+    function handleDelete(index) {
+        setContacts(contacts.filter((_, i) => i !== index));
+    }
 
-    const addContact = () => {
-        if (newContact.name && newContact.surname && newContact.phone) {
-            setContacts([...contacts, newContact]);
-            setNewContact({ name: '', surname: '', phone: '' });
-            setShowForm(false);
-        }
-    };
-
-    const handleInputChange = (e) => {
+    function handleInputChange(e) {
         const { name, value } = e.target;
         setNewContact({ ...newContact, [name]: value });
-    };
+    }
+
+    function handleSave() {
+        if (newContact.name && newContact.phone && newContact.email) {
+            setContacts([...contacts, newContact]);
+            setNewContact({ name: '', phone: '', email: '' });
+            setShowForm(false);
+        }
+    }
 
     return (
         <div>
-            <h2>Список контактів</h2>
-            <table border="1" cellPadding="5" cellSpacing="0">
+            <h2>Contacts</h2>
+            <table border="1" cellPadding="5">
                 <thead>
                 <tr>
-                    <th>Ім'я</th>
-                    <th>Прізвище</th>
-                    <th>Телефон</th>
-                    <th>Дія</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Action</th>
                 </tr>
                 </thead>
                 <tbody>
-                {contacts.map((contact, index) => (
+                {contacts.map((c, index) => (
                     <tr key={index}>
-                        <td>{contact.name}</td>
-                        <td>{contact.surname}</td>
-                        <td>{contact.phone}</td>
+                        <td>{c.name}</td>
+                        <td>{c.phone}</td>
+                        <td>{c.email}</td>
                         <td>
-                            <button onClick={() => deleteContact(index)}>Видалити</button>
+                            <button onClick={() => handleDelete(index)}>Delete</button>
                         </td>
                     </tr>
                 ))}
                 </tbody>
             </table>
-
-            <button onClick={() => setShowForm(true)}>Додати контакт</button>
+            <button onClick={() => setShowForm(true)}>Add Contact</button>
 
             {showForm && (
                 <div>
-                    <h3>Новий контакт</h3>
                     <input
-                        type="text"
                         name="name"
-                        placeholder="Ім'я"
+                        placeholder="Name"
                         value={newContact.name}
                         onChange={handleInputChange}
                     />
                     <input
-                        type="text"
-                        name="surname"
-                        placeholder="Прізвище"
-                        value={newContact.surname}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        type="text"
                         name="phone"
-                        placeholder="Телефон"
+                        placeholder="Phone"
                         value={newContact.phone}
                         onChange={handleInputChange}
                     />
-                    <br />
-                    <button onClick={addContact}>Зберегти</button>
-                    <button onClick={() => setShowForm(false)}>Скасувати</button>
+                    <input
+                        name="email"
+                        placeholder="Email"
+                        value={newContact.email}
+                        onChange={handleInputChange}
+                    />
+                    <button onClick={handleSave}>Save</button>
+                    <button onClick={() => setShowForm(false)}>Cancel</button>
                 </div>
             )}
         </div>
     );
 }
 
-export default ContactsApp;
-
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
