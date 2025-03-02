@@ -1,87 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 
-function App() {
-    const [contacts, setContacts] = useState([]);
-    const [showForm, setShowForm] = useState(false);
-    const [newContact, setNewContact] = useState({ name: '', phone: '', email: '' });
+const App = () => {
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+    const [errors, setErrors] = useState({});
+    const [message, setMessage] = useState('');
 
-    useEffect(() => {
-        fetch('https://jsonplaceholder.typicode.com/users')
-            .then((res) => res.json())
-            .then((data) => setContacts(data.map((u) => ({ name: u.name, phone: u.phone, email: u.email }))));
-    }, []);
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
-    function handleDelete(index) {
-        setContacts(contacts.filter((_, i) => i !== index));
-    }
+    const validate = () => {
+        let newErrors = {};
+        if (!formData.name.trim()) newErrors.name = 'Name is required';
+        if (!formData.email.includes('@')) newErrors.email = 'Invalid email format';
+        if (!/^[0-9]{12}$/.test(formData.phone)) newErrors.phone = 'Phone must be 12 digits';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
-    function handleInputChange(e) {
-        const { name, value } = e.target;
-        setNewContact({ ...newContact, [name]: value });
-    }
-
-    function handleSave() {
-        if (newContact.name && newContact.phone && newContact.email) {
-            setContacts([...contacts, newContact]);
-            setNewContact({ name: '', phone: '', email: '' });
-            setShowForm(false);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (validate()) {
+            setMessage('Form submitted successfully!');
+            setErrors({});
+        } else {
+            setMessage('');
         }
-    }
+    };
 
     return (
-        <div>
-            <h2>Contacts</h2>
-            <table border="1" cellPadding="5">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                {contacts.map((c, index) => (
-                    <tr key={index}>
-                        <td>{c.name}</td>
-                        <td>{c.phone}</td>
-                        <td>{c.email}</td>
-                        <td>
-                            <button onClick={() => handleDelete(index)}>Delete</button>
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-            <button onClick={() => setShowForm(true)}>Add Contact</button>
+        <div style={{ maxWidth: '300px', margin: '20px auto', textAlign: 'center' }}>
+            <h2>Contact Form</h2>
+            <form onSubmit={handleSubmit}>
+                <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} /><br />
+                {errors.name && <span style={{ color: 'red' }}>{errors.name}</span>}<br />
 
-            {showForm && (
-                <div>
-                    <input
-                        name="name"
-                        placeholder="Name"
-                        value={newContact.name}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        name="phone"
-                        placeholder="Phone"
-                        value={newContact.phone}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        name="email"
-                        placeholder="Email"
-                        value={newContact.email}
-                        onChange={handleInputChange}
-                    />
-                    <button onClick={handleSave}>Save</button>
-                    <button onClick={() => setShowForm(false)}>Cancel</button>
-                </div>
-            )}
+                <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} /><br />
+                {errors.email && <span style={{ color: 'red' }}>{errors.email}</span>}<br />
+
+                <input type="text" name="phone" placeholder="Phone (12 digits)" value={formData.phone} onChange={handleChange} /><br />
+                {errors.phone && <span style={{ color: 'red' }}>{errors.phone}</span>}<br />
+
+                <button type="submit">Submit</button>
+            </form>
+            {message && <p style={{ color: 'green' }}>{message}</p>}
         </div>
     );
-}
+};
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
