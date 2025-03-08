@@ -1,49 +1,59 @@
-
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import OrderForm from "./OrderForm";
+import OrderList from "./OrderList";
 
 function App() {
-    const [tasks, setTasks] = useState([
-        { id: 1, text: "First task", done: false },
-        { id: 2, text: "Second task", done: true }
-    ]);
-    const [newTask, setNewTask] = useState("");
+    const [showOrders, setShowOrders] = useState(false);
+    const [orders, setOrders] = useState([]);
 
-    function toggleTask(id) {
-        setTasks(tasks.map(task => {
-            if (task.id === id) {
-                return { id: task.id, text: task.text, done: !task.done };
-            }
-            return task;
-        }));
+    const categories = ["Одяг", "Взуття", "Аксесуари"];
+
+    useEffect(() => {
+        const savedOrders = JSON.parse(localStorage.getItem("orders")) || [];
+        setOrders(savedOrders);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("orders", JSON.stringify(orders));
+    }, [orders]);
+
+    function toggleOrders() {
+        setShowOrders(!showOrders);
     }
 
-    function addTask() {
-        if (newTask) {
-            setTasks([...tasks, { id: Date.now(), text: newTask, done: false }]);
-            setNewTask("");
-        }
+    function addOrder(order) {
+        setOrders([...orders, order]);
+    }
+
+    function removeOrder(id) {
+        setOrders(orders.filter(order => order.id !== id));
     }
 
     return (
         <div>
-            <h1>List tasks</h1>
-            <ul>
-                {tasks.sort((a, b) => a.done - b.done).map(task => (
-                    <li
-                        key={task.id}
-                        onClick={() => toggleTask(task.id)}
-                        style={{ textDecoration: task.done ? "line-through" : "none", cursor: "pointer" }}
-                    >
-                        {task.text}
-                    </li>
-                ))}
-            </ul>
-            <input value={newTask} onChange={e => setNewTask(e.target.value)} />
-            <button onClick={addTask}>Add</button>
+            <h1>Інтернет-магазин</h1>
+            <button onClick={toggleOrders}>
+                {showOrders ? "Повернутись до категорій" : "Мої замовлення"}
+            </button>
+
+            {!showOrders ? (
+                <div>
+                    <h2>Категорії:</h2>
+                    <ul>
+                        {categories.map((category) => (
+                            <li key={category}>{category}</li>
+                        ))}
+                    </ul>
+                    <OrderForm addOrder={addOrder} />
+                </div>
+            ) : (
+                <div>
+                    <h2>Мої замовлення:</h2>
+                    <OrderList orders={orders} removeOrder={removeOrder} />
+                </div>
+            )}
         </div>
     );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+export default App;
